@@ -5,5 +5,4 @@ services:
     plan: free
     buildCommand: pip install --upgrade pip && pip install -r requirements.txt
     startCommand: python app.py
-    pythonVersion: 3.11.8
-    rootDirectory: ml
+    pythonVersion: 3.11.0
