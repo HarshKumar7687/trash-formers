@@ -16,37 +16,37 @@ def speak(text):
 def processCommand(c):
     if "home" in c.lower():
         speak("Opening Home page!")
-        webbrowser.open("https://trash-former.netlify.app/")
+        webbrowser.open("http://localhost:5173/")
     elif "dashboard" in c.lower():
         speak("Opening Dashboard!")
-        webbrowser.open("https://trash-former.netlify.app/dashboard")
+        webbrowser.open("http://localhost:5173/dashboard")
     elif "found waste" in c.lower():
         speak("Opening Waste Upload page!")
-        webbrowser.open("https://trash-former.netlify.app/waste-upload")
+        webbrowser.open("http://localhost:5173/waste-upload")
     elif "upload" in c.lower():
         speak("Opening Waste Upload Page!")
-        webbrowser.open("https://trash-former.netlify.app/waste-upload")
+        webbrowser.open("http://localhost:5173/waste-upload")
     elif "learn" in c.lower():
         speak("Opening Learning page!")
-        webbrowser.open("https://trash-former.netlify.app/learning")
+        webbrowser.open("http://localhost:5173/learning")
     elif "contest" in c.lower():
         speak("Opening Weekly Contest!")
-        webbrowser.open("https://trash-former.netlify.app/social-feed")
+        webbrowser.open("http://localhost:5173/social-feed")
     elif "social" in c.lower():
         speak("Opening Weekly Contest!")
-        webbrowser.open("https://trash-former.netlify.app/social-feed")
+        webbrowser.open("http://localhost:5173/social-feed")
     elif "shop" in c.lower():
         speak("Opening Shopping page!")
-        webbrowser.open("https://trash-former.netlify.app/shop")
+        webbrowser.open("http://localhost:5173/shop")
     elif "buy" in c.lower():
         speak("Opening Shopping page!")
-        webbrowser.open("https://trash-former.netlify.app/shop")
+        webbrowser.open("http://localhost:5173/shop")
     elif "sell" in c.lower():
         speak("Opening Shopping page!")
-        webbrowser.open("https://trash-former.netlify.app/shop/sell")
+        webbrowser.open("http://localhost:5173/shop/sell")
     elif "logout" in c.lower():
         speak("Logging Out!")
-        webbrowser.open("https://trash-former.netlify.app/login")
+        webbrowser.open("http://localhost:5173/login")
     else:
         speak("Unable to work on the command")
 

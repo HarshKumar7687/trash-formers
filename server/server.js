@@ -16,7 +16,7 @@ const app = express();
 // Get allowed origins from environment variable or use defaults
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
   ? process.env.ALLOWED_ORIGINS.split(',') 
-  : ['https://trash-former.netlify.app', 'http://127.0.0.1:5173'];
+  : ['http://localhost:5173', 'http://127.0.0.1:5173'];
 
 // Add your production frontend URL
 if (process.env.NODE_ENV === 'production' && process.env.CLIENT_URL) {
@@ -80,7 +80,7 @@ if (!fs.existsSync(uploadsDir)) {
 // Serve static files with proper CORS headers
 app.use('/uploads', express.static(uploadsDir, {
   setHeaders: (res, path) => {
-    res.setHeader('Access-Control-Allow-Origin', process.env.CLIENT_URL || 'https://trash-former.netlify.app');
+    res.setHeader('Access-Control-Allow-Origin', process.env.CLIENT_URL || 'http://localhost:5173');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');

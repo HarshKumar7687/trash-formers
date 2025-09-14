@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
+from flask_cors import CORS  # Add this import
 import numpy as np
 from PIL import Image
 import json
@@ -7,8 +8,10 @@ import tensorflow as tf
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+CORS(app)  # Add CORS support
+
 app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max file size
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'bmp'}
 
 # Create upload directory if it doesn't exist
@@ -21,11 +24,8 @@ try:
 
     with open('class_mapping.json', 'r') as f:
         class_mapping = json.load(f)
-    # Convert keys to int
     class_mapping = {int(k): v for k, v in class_mapping.items()}
     print("✅ Class mapping loaded successfully")
-
-    # Set image size (your model was trained on 224x224 images)
     config = {'img_size': 224}
 
 except Exception as e:
@@ -34,24 +34,17 @@ except Exception as e:
     class_mapping = {}
     config = {'img_size': 224}
 
-
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
-
 def preprocess_image(image):
-    """Preprocess the image for model prediction"""
     image = image.resize((config['img_size'], config['img_size']))
-    img_array = np.array(image) / 255.0  # normalize
+    img_array = np.array(image) / 255.0
     img_array = np.expand_dims(img_array, axis=0)
     return img_array
 
-
 def map_to_waste_category(original_class, confidence, all_predictions):
-    """
-    Map the original prediction to broader waste categories
-    """
     waste_mapping = {
         'bio-degradable': ['paper', 'cardboard', 'organic'],
         'plastic': ['plastic'],
@@ -59,7 +52,7 @@ def map_to_waste_category(original_class, confidence, all_predictions):
         'other': ['metal', 'glass']
     }
 
-    if confidence < 0.24:  # low confidence threshold
+    if confidence < 0.24:
         return 'hazardous', confidence
 
     original_class_lower = original_class.lower()
@@ -71,11 +64,13 @@ def map_to_waste_category(original_class, confidence, all_predictions):
 
     return 'other', confidence
 
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
+@app.route('/health', methods=['GET'])  # Add health endpoint
+def health_check():
+    return jsonify({
+        'status': 'healthy',
+        'model_loaded': model is not None,
+        'service': 'waste-classification-ml'
+    })
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -112,7 +107,7 @@ def predict():
                     'success': True,
                     'original_class': original_class,
                     'waste_category': waste_category,
-                    'confidence': round(final_confidence * 100, 2),  # %
+                    'confidence': round(final_confidence * 100, 2),
                     'all_predictions': predictions[0].tolist(),
                     'all_classes': list(class_mapping.values())
                 })
@@ -126,6 +121,10 @@ def predict():
 
     return jsonify({'error': 'Invalid file type'}), 400
 
+@app.route('/test', methods=['GET'])  # Add simple test endpoint
+def test():
+    return jsonify({'message': 'ML service is working!'})
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    port = int(os.environ.get('PORT', 5001))
+    app.run(host='0.0.0.0', port=port, debug=False)  # debug=False for production
