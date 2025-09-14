@@ -2,7 +2,6 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import Chatbot from "../components/Chatbot";
 
 const Home = () => {
   const sectionRefs = useRef([]);
@@ -323,8 +322,6 @@ const Home = () => {
           Copyright © 2024 Trash FORMERS. All rights reserved.
         </div>
       </footer>
-      <Chatbot />
-
       <style>{`
         :root {
           --primary-color: #0a1e27;
