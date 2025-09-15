@@ -7,4 +7,8 @@ services:
     startCommand: python app.py
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.9
+        value: 3.10.13
+      - key: PORT
+        value: 5001
+      - key: TF_CPP_MIN_LOG_LEVEL
+        value: 3
