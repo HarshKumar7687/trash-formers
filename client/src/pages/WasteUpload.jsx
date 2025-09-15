@@ -104,7 +104,7 @@ const WasteUpload = () => {
       
       console.log('🔄 Sending image to your ML model...');
       
-      const response = await fetch(`${import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:8000/api'}/ml/predict`, {
+      const response = await fetch(`${import.meta.env.VITE_ML_SERVICE_URL}/ml/predict`, {
         method: 'POST',
         body: formData,
       });
