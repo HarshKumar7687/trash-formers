@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, Award, CheckCircle, XCircle, User, Calendar, ChevronLeft, ChevronRight, Image, Trophy } from 'lucide-react';
 import { adminAPI } from '../services/api';
 
-// Updated SafeImage component
+// Safe Image Component for Contest Management
 const SafeImage = ({ src, alt, className, ...props }) => {
   const [hasError, setHasError] = useState(false);
-  
+  const [isLoading, setIsLoading] = useState(true);
+
   const getProcessedUrl = () => {
     if (!src) return null;
     
@@ -14,34 +15,63 @@ const SafeImage = ({ src, alt, className, ...props }) => {
       return src;
     }
     
-    // For deployed environment
-    if (window.location.origin.includes('netlify') || window.location.origin.includes('vercel')) {
-      const backendUrl = import.meta.env.VITE_API_URL || 'https://your-backend-url.onrender.com';
-      return `${backendUrl}${src.startsWith('/') ? '' : '/'}${src}`;
+    // If it's a relative path from server, construct proper URL
+    const baseUrl = process.env.BACKEND_URL || 'http://localhost:8000';
+    
+    // Handle both formats: /uploads/filename and uploads/filename
+    if (src.startsWith('/uploads/')) {
+      return `${baseUrl}${src}`;
+    } else if (src.startsWith('uploads/')) {
+      return `${baseUrl}/${src}`;
     }
     
-    // For local development
-    return `http://localhost:8000${src.startsWith('/') ? '' : '/'}${src}`;
+    // For any other relative paths
+    return `${baseUrl}/uploads/${src}`;
   };
 
   const processedUrl = getProcessedUrl();
 
+  const handleError = () => {
+    console.error('Image failed to load:', processedUrl);
+    setHasError(true);
+    setIsLoading(false);
+  };
+
+  const handleLoad = () => {
+    setIsLoading(false);
+    setHasError(false);
+  };
+
   if (!processedUrl || hasError) {
     return (
-      <div className={`${className} bg-gray-700 flex items-center justify-center rounded-lg`}>
-        <span className="text-gray-400">No image</span>
+      <div className={`${className} bg-gray-700 flex items-center justify-center rounded-lg border border-gray-600`}>
+        <div className="text-center">
+          <Image className="w-6 h-6 text-gray-500 mx-auto mb-1" />
+          <span className="text-gray-400 text-xs">No image</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <img
-      src={processedUrl}
-      alt={alt}
-      className={className}
-      onError={() => setHasError(true)}
-      {...props}
-    />
+    <div className="relative">
+      {isLoading && (
+        <div className="absolute inset-0 bg-gray-700 animate-pulse flex items-center justify-center rounded-lg">
+          <div className="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
+      <img
+        src={processedUrl}
+        alt={alt}
+        className={`${className} ${isLoading ? 'opacity-0' : 'opacity-100'} object-cover rounded-lg`}
+        crossOrigin="anonymous"
+        decoding="async"
+        loading="lazy"
+        onError={handleError}
+        onLoad={handleLoad}
+        {...props}
+      />
+    </div>
   );
 };
 

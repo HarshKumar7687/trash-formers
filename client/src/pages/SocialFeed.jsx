@@ -46,44 +46,52 @@ const formatDate = (date) => {
   });
 };
 
-// Updated SafeImage component
+// Safe Image Component to prevent WebGL issues and empty src
 const SafeImage = ({ src, alt, className, ...props }) => {
   const [hasError, setHasError] = useState(false);
-  
-  const getProcessedUrl = () => {
-    if (!src) return null;
-    
-    // If it's already a full URL, return it
-    if (src.startsWith('http') || src.startsWith('blob:') || src.startsWith('data:')) {
-      return src;
+  const [imageSrc, setImageSrc] = useState(null);
+
+  useEffect(() => {
+    if (src) {
+      // If it's a relative path, prepend the backend URL
+      let imageUrl = src;
+      if (src && !src.startsWith('http') && !src.startsWith('blob:') && !src.startsWith('data:')) {
+        const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8000';
+        imageUrl = `${baseUrl}${src.startsWith('/') ? '' : '/'}${src}`;
+      }
+      setImageSrc(imageUrl);
+      setHasError(false);
+    } else {
+      // If no src, set to null to prevent empty string
+      setImageSrc(null);
     }
-    
-    // For deployed environment
-    if (window.location.origin.includes('netlify') || window.location.origin.includes('vercel')) {
-      const backendUrl = import.meta.env.VITE_API_URL || 'https://your-backend-url.onrender.com';
-      return `${backendUrl}${src.startsWith('/') ? '' : '/'}${src}`;
+  }, [src]);
+
+  const handleError = () => {
+    if (!hasError) {
+      setHasError(true);
+      setImageSrc('https://via.placeholder.com/400x200?text=Image+Not+Found');
     }
-    
-    // For local development
-    return `http://localhost:8000${src.startsWith('/') ? '' : '/'}${src}`;
   };
 
-  const processedUrl = getProcessedUrl();
-
-  if (!processedUrl || hasError) {
+  // Don't render the image if there's no valid source
+  if (!imageSrc) {
     return (
-      <div className={`${className} bg-gray-700 flex items-center justify-center rounded-lg`}>
-        <span className="text-gray-400">No image</span>
+      <div className={`${className} bg-gray-700 flex items-center justify-center`}>
+        <span className="text-gray-400 text-sm">No image</span>
       </div>
     );
   }
 
   return (
     <img
-      src={processedUrl}
+      src={imageSrc}
       alt={alt}
       className={className}
-      onError={() => setHasError(true)}
+      crossOrigin="anonymous"
+      decoding="async"
+      loading="lazy"
+      onError={handleError}
       {...props}
     />
   );

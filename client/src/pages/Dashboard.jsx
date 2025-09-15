@@ -4,10 +4,11 @@ import { User, Trophy, Upload, Coins, TrendingUp, Award, Calendar, Target, Loade
 import Navbar from '../components/Navbar';
 import { userAPI, adminAPI } from '../services/api';
 
-// Updated SafeImage component
+// Safe Image Component for Dashboard
 const SafeImage = ({ src, alt, className, ...props }) => {
   const [hasError, setHasError] = useState(false);
-  
+  const [isLoading, setIsLoading] = useState(true);
+
   const getProcessedUrl = () => {
     if (!src) return null;
     
@@ -16,34 +17,68 @@ const SafeImage = ({ src, alt, className, ...props }) => {
       return src;
     }
     
-    // For deployed environment
-    if (window.location.origin.includes('netlify') || window.location.origin.includes('vercel')) {
-      const backendUrl = import.meta.env.VITE_API_URL || 'https://your-backend-url.onrender.com';
-      return `${backendUrl}${src.startsWith('/') ? '' : '/'}${src}`;
+    // If it's a relative path from server, construct proper URL
+    const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8000';
+    
+    // Handle avatar paths
+    if (src.includes('avatars')) {
+      return `${baseUrl}${src}`;
     }
     
-    // For local development
-    return `http://localhost:8000${src.startsWith('/') ? '' : '/'}${src}`;
+    // Handle other upload paths
+    if (src.startsWith('/uploads/')) {
+      return `${baseUrl}${src}`;
+    } else if (src.startsWith('uploads/')) {
+      return `${baseUrl}/${src}`;
+    }
+    
+    // For any other relative paths
+    return `${baseUrl}/uploads/${src}`;
   };
 
   const processedUrl = getProcessedUrl();
 
+  const handleError = () => {
+    console.error('Image failed to load:', processedUrl);
+    setHasError(true);
+    setIsLoading(false);
+  };
+
+  const handleLoad = () => {
+    setIsLoading(false);
+    setHasError(false);
+  };
+
   if (!processedUrl || hasError) {
     return (
-      <div className={`${className} bg-gray-700 flex items-center justify-center rounded-lg`}>
-        <span className="text-gray-400">No image</span>
+      <div className={`${className} bg-gray-700 flex items-center justify-center rounded-lg border border-gray-600`}>
+        <div className="text-center">
+          <ImageIcon className="w-6 h-6 text-gray-500 mx-auto mb-1" />
+          <span className="text-gray-400 text-xs">No image</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <img
-      src={processedUrl}
-      alt={alt}
-      className={className}
-      onError={() => setHasError(true)}
-      {...props}
-    />
+    <div className="relative">
+      {isLoading && (
+        <div className="absolute inset-0 bg-gray-700 animate-pulse flex items-center justify-center rounded-lg">
+          <Loader className="w-4 h-4 text-gray-500 animate-spin" />
+        </div>
+      )}
+      <img
+        src={processedUrl}
+        alt={alt}
+        className={`${className} ${isLoading ? 'opacity-0' : 'opacity-100'} object-cover rounded-lg`}
+        crossOrigin="anonymous"
+        decoding="async"
+        loading="lazy"
+        onError={handleError}
+        onLoad={handleLoad}
+        {...props}
+      />
+    </div>
   );
 };
 
