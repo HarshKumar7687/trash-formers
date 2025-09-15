@@ -135,6 +135,19 @@ def predict():
 def test():
     return jsonify({'message': 'ML service is working!'})
 
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({
+        'message': 'Waste Classification API is running!',
+        'endpoints': {
+            'health_check': 'GET /health',
+            'test': 'GET /test', 
+            'predict': 'POST /predict (with image file)'
+        },
+        'status': 'healthy',
+        'model_loaded': model is not None
+    })
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5001))
     app.run(host='0.0.0.0', port=port, debug=False)
