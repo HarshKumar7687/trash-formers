@@ -1,17 +1,11 @@
-
 import os
 import warnings
 import logging
 
-# Suppress all warnings - ADD THIS AT THE VERY TOP
+# Suppress all warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 warnings.filterwarnings('ignore')
 logging.getLogger('tensorflow').setLevel(logging.ERROR)
-
-# Import these before tensorflow
-import absl.logging
-absl.logging.set_verbosity(absl.logging.ERROR)
-
 
 
 from flask import Flask, request, jsonify
