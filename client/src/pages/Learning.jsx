@@ -9,21 +9,25 @@ const Learning = () => {
   const [activeCategory, setActiveCategory] = useState('recycling');
   const [isVisible, setIsVisible] = useState(false);
   const globeMountRef = useRef(null);
+  const sceneRef = useRef(null);
+  const rendererRef = useRef(null);
 
   useEffect(() => {
     setIsVisible(true);
     
     // Initialize Three.js scene for the globe
     const scene = new THREE.Scene();
+    sceneRef.current = scene;
     const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ 
       alpha: true, 
       antialias: true,
       powerPreference: "high-performance"
     });
+    rendererRef.current = renderer;
     
     // Set renderer size to perfectly match the container
-    const globeSize = 640; // Matches w-36 h-36 (144px with some padding)
+    const globeSize = 144; // Match the actual size of the container (w-36 h-36 = 144px)
     renderer.setSize(globeSize, globeSize);
     renderer.setClearColor(0x000000, 0);
     
@@ -35,52 +39,34 @@ const Learning = () => {
       globeMountRef.current.appendChild(renderer.domElement);
     }
     
-    // MAXIMUM LIGHTING - increased all values to maximum
-    const ambientLight = new THREE.AmbientLight(0xffffff, 3.0); // Maximum intensity
+    // Enhanced lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
     scene.add(ambientLight);
     
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 5.0); // Maximum intensity
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 2.0);
     directionalLight.position.set(5, 10, 7);
     scene.add(directionalLight);
     
-    // Additional directional light from the opposite side
-    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 3.0);
+    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 1.5);
     directionalLight2.position.set(-5, -5, -5);
     scene.add(directionalLight2);
     
-    // Add multiple point lights for maximum illumination
-    const pointLight1 = new THREE.PointLight(0x88ccff, 3, 50); // Blueish light
-    pointLight1.position.set(10, 5, 10);
-    scene.add(pointLight1);
-    
-    const pointLight2 = new THREE.PointLight(0xff8866, 3, 50); // Orangeish light
-    pointLight2.position.set(-10, -5, -10);
-    scene.add(pointLight2);
-    
-    const pointLight3 = new THREE.PointLight(0x88ff88, 2, 30); // Greenish light
-    pointLight3.position.set(0, 10, 0);
-    scene.add(pointLight3);
-    
-    // Add a hemisphere light for even more ambient illumination
-    const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x4444aa, 2.0);
-    scene.add(hemisphereLight);
-    
-    // Load the globe model
+    // Load the globe model - using correct path
     const loader = new GLTFLoader();
     loader.load(
-      '/globe.glb',
+      '/globe.glb', // Make sure this file exists in your public folder
       (gltf) => {
         const globe = gltf.scene;
         globe.scale.set(2.5, 2.5, 2.5);
         globe.position.y = 0;
         scene.add(globe);
         
-        // Add extra lights specifically targeting the globe
-        const globeLight1 = new THREE.PointLight(0xffffff, 2, 20);
+        // Add lights specifically targeting the globe
+        const globeLight1 = new THREE.PointLight(0xffffff, 1.5, 20);
         globeLight1.position.set(3, 3, 3);
         globe.add(globeLight1);
         
-        const globeLight2 = new THREE.PointLight(0xffffff, 2, 20);
+        const globeLight2 = new THREE.PointLight(0xffffff, 1.5, 20);
         globeLight2.position.set(-3, -3, -3);
         globe.add(globeLight2);
       },
@@ -88,46 +74,82 @@ const Learning = () => {
       (error) => {
         console.error('Error loading globe model:', error);
         
-        // Fallback: create a simple sphere if the model fails to load
-        const geometry = new THREE.SphereGeometry(1, 32, 32);
+        // Enhanced fallback: create a more detailed sphere
+        const geometry = new THREE.SphereGeometry(1, 64, 64);
         const material = new THREE.MeshPhongMaterial({ 
           color: 0x22a7f0,
           shininess: 100,
           specular: 0x1188ff,
-          emissive: 0x112233 // Add some emissive property for self-illumination
+          emissive: 0x112233
         });
         const sphere = new THREE.Mesh(geometry, material);
         scene.add(sphere);
         
-        // Add some details to make it look like a globe
+        // Add detailed lines to make it look like a globe
         const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
-        const lineGeometry = new THREE.RingGeometry(1, 1.01, 32);
-        const ring1 = new THREE.Line(lineGeometry, lineMaterial);
-        ring1.rotation.x = Math.PI / 2;
-        scene.add(ring1);
         
-        const ring2 = new THREE.Line(lineGeometry, lineMaterial);
-        ring2.rotation.z = Math.PI / 2;
-        scene.add(ring2);
+        // Add latitude lines
+        for (let i = 0; i <= 180; i += 15) {
+          const latGeometry = new THREE.BufferGeometry();
+          const vertices = [];
+          const radius = 1.01;
+          
+          for (let j = 0; j <= 360; j += 5) {
+            const theta = (j * Math.PI) / 180;
+            const phi = ((i - 90) * Math.PI) / 180;
+            
+            vertices.push(
+              radius * Math.cos(theta) * Math.cos(phi),
+              radius * Math.sin(phi),
+              radius * Math.sin(theta) * Math.cos(phi)
+            );
+          }
+          
+          latGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+          const latLine = new THREE.Line(latGeometry, lineMaterial);
+          scene.add(latLine);
+        }
         
-        // Add a cloud layer for more realism
-        const cloudGeometry = new THREE.SphereGeometry(1.02, 32, 32);
+        // Add longitude lines
+        for (let i = 0; i <= 360; i += 15) {
+          const longGeometry = new THREE.BufferGeometry();
+          const vertices = [];
+          const radius = 1.01;
+          
+          for (let j = 0; j <= 180; j += 5) {
+            const theta = (i * Math.PI) / 180;
+            const phi = ((j - 90) * Math.PI) / 180;
+            
+            vertices.push(
+              radius * Math.cos(theta) * Math.cos(phi),
+              radius * Math.sin(phi),
+              radius * Math.sin(theta) * Math.cos(phi)
+            );
+          }
+          
+          longGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+          const longLine = new THREE.Line(longGeometry, lineMaterial);
+          scene.add(longLine);
+        }
+        
+        // Add a cloud layer
+        const cloudGeometry = new THREE.SphereGeometry(1.05, 32, 32);
         const cloudMaterial = new THREE.MeshPhongMaterial({
           color: 0xffffff,
           transparent: true,
-          opacity: 0.3 // Increased opacity
+          opacity: 0.3
         });
         const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
         scene.add(clouds);
         
         // Add lights specifically for the fallback globe
-        const sphereLight = new THREE.PointLight(0xffffff, 3, 15);
+        const sphereLight = new THREE.PointLight(0xffffff, 2, 15);
         sphereLight.position.set(2, 2, 2);
         sphere.add(sphereLight);
       }
     );
     
-    // Camera position - adjusted to perfectly fit the circle
+    // Camera position - adjusted to fit the circle
     camera.position.z = 2.8;
     
     // Add orbit controls for interaction
@@ -147,24 +169,35 @@ const Learning = () => {
       requestAnimationFrame(animate);
       controls.update();
       renderer.render(scene, camera);
-      
-      // Add a slight animation to some lights for extra dynamism
-      const time = Date.now() * 0.001;
-      pointLight1.intensity = 3 + Math.sin(time) * 0.5;
-      pointLight2.intensity = 3 + Math.cos(time * 0.7) * 0.5;
     };
     
     animate();
+    
+    // Handle window resize
+    const handleResize = () => {
+      const container = globeMountRef.current;
+      if (container) {
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        renderer.setSize(width, height);
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
     
     // Clean up
     return () => {
       if (globeMountRef.current && renderer.domElement) {
         globeMountRef.current.removeChild(renderer.domElement);
       }
+      window.removeEventListener('resize', handleResize);
       renderer.dispose();
     };
   }, []);
 
+  // Rest of the component remains the same...
   // Function to handle PDF download
   const handleDownload = () => {
     const pdfUrl = 'https://www.khushiparisara.in/wp-content/uploads/2016/11/Waste_Management_Handbook.pdf';
@@ -176,6 +209,7 @@ const Learning = () => {
     document.body.removeChild(link);
   };
 
+  // ... (rest of the component remains unchanged)
   const wasteCategories = {
     recycling: {
       title: 'Recycling',
