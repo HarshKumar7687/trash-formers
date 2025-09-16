@@ -20,23 +20,24 @@ const SafeImage = ({ src, alt, className, ...props }) => {
     // If it's a relative path from server, construct proper URL
     const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8000';
     
+    // Remove any leading slash to avoid double slashes
+    const cleanSrc = src.startsWith('/') ? src.substring(1) : src;
+    
     // Handle avatar paths
-    if (src.includes('avatars')) {
-      return `${baseUrl}${src}`;
+    if (cleanSrc.includes('avatar')) {
+      return `${baseUrl}/uploads/avatars/${cleanSrc}`;
     }
     
     // Handle other upload paths
-    if (src.startsWith('/uploads/')) {
-      return `${baseUrl}${src}`;
-    } else if (src.startsWith('uploads/')) {
-      return `${baseUrl}/${src}`;
-    }
-    
-    // For any other relative paths
-    return `${baseUrl}/uploads/${src}`;
+    return `${baseUrl}/uploads/${cleanSrc}`;
   };
 
   const processedUrl = getProcessedUrl();
+
+  // Add debug logging to see what URLs are being generated
+  useEffect(() => {
+    console.log('Image debug:', { original: src, processed: processedUrl });
+  }, [src, processedUrl]);
 
   const handleError = () => {
     console.error('Image failed to load:', processedUrl);
@@ -49,7 +50,7 @@ const SafeImage = ({ src, alt, className, ...props }) => {
     setHasError(false);
   };
 
-  if (!processedUrl || hasError) {
+  if (!src || hasError) {
     return (
       <div className={`${className} bg-gray-700 flex items-center justify-center rounded-lg border border-gray-600`}>
         <div className="text-center">
@@ -81,7 +82,6 @@ const SafeImage = ({ src, alt, className, ...props }) => {
     </div>
   );
 };
-
 const Dashboard = () => {
   const [user, setUser] = useState({
     name: '',
