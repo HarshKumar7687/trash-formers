@@ -54,7 +54,7 @@ const Learning = () => {
     // Load the globe model - using correct path
     const loader = new GLTFLoader();
     loader.load(
-      '/globe.glb', // Make sure this file exists in your public folder
+      `${process.env.PUBLIC_URL}/globe.glb`,
       (gltf) => {
         const globe = gltf.scene;
         globe.scale.set(2.5, 2.5, 2.5);
