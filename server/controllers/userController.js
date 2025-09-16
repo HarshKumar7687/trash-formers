@@ -2,14 +2,26 @@ const User = require('../models/User');
 const Waste = require('../models/Waste');
 const ContestEntry = require('../models/Contest');
 
-// Helper function to get full image URL
 const getFullImageUrl = (imagePath) => {
   if (!imagePath) return null;
-  if (imagePath.startsWith('http')) return imagePath;
+  
+  if (imagePath.startsWith('http') || 
+      imagePath.startsWith('blob:') || 
+      imagePath.startsWith('data:')) {
+    return imagePath;
+  }
   
   const baseUrl = process.env.BACKEND_URL || 'http://localhost:8000';
-  return `${baseUrl}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
+  
+  if (imagePath.startsWith('/uploads/')) {
+    return `${baseUrl}${imagePath}`;
+  } else if (imagePath.startsWith('uploads/')) {
+    return `${baseUrl}/${imagePath}`;
+  } else {
+    return `${baseUrl}/uploads/${imagePath}`;
+  }
 };
+
 
 // Get user dashboard data
 const getDashboardData = async (req, res) => {

@@ -100,24 +100,38 @@ const ContestManagement = () => {
       
       const response = await adminAPI.getAllContestEntries(params);
       
-      // Process images to ensure correct URLs
-      const processedEntries = (response.data.contestEntries || []).map(entry => {
-        if (entry.images && entry.images.length > 0) {
-          return {
-            ...entry,
-            images: entry.images.map(img => {
-              // If image is already a full URL (Cloudinary or external), return as is
-              if (img && (img.startsWith('http') || img.startsWith('blob:'))) {
-                return img;
-              }
-              // If it's a local filename, prepend the backend URL
-              const baseUrl = process.env.BACKEND_URL || 'http://localhost:8000';
-              return `${baseUrl}/uploads/${img}`;
-            })
-          };
+     // Update the image processing logic:
+const processedEntries = contestEntries.map(entry => {
+  const entryObj = entry.toObject();
+  
+  // Process user avatar
+  if (entryObj.user?.avatar) {
+    if (entryObj.user.avatar.startsWith('http')) {
+      // Already full URL
+      entryObj.user.avatar = entryObj.user.avatar;
+    } else {
+      const baseUrl = process.env.BACKEND_URL || 'http://localhost:8000';
+      entryObj.user.avatar = `${baseUrl}${entryObj.user.avatar.startsWith('/') ? '' : '/'}${entryObj.user.avatar}`;
+    }
+  }
+  
+  // Process entry images
+  if (entryObj.images && entryObj.images.length > 0) {
+    entryObj.images = entryObj.images.map(img => {
+      if (img) {
+        if (img.startsWith('http')) {
+          return img;
+        } else {
+          const baseUrl = process.env.BACKEND_URL || 'http://localhost:8000';
+          return `${baseUrl}${img.startsWith('/') ? '' : '/'}${img}`;
         }
-        return entry;
-      });
+      }
+      return img;
+    });
+  }
+  
+  return entryObj;
+});
       
       setEntries(processedEntries);
       setTotalPages(response.data.totalPages || 1);

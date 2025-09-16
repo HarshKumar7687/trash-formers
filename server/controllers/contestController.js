@@ -17,29 +17,38 @@ const getContestEntries = async (req, res) => {
       .limit(limit * 1)
       .skip((page - 1) * limit);
     
-    // Process images to include full URLs
-    const processedEntries = contestEntries.map(entry => {
-      const entryObj = entry.toObject();
-      
-      // Process user avatar
-      if (entryObj.user?.avatar && !entryObj.user.avatar.startsWith('http')) {
-        const baseUrl = process.env.BACKEND_URL || 'http://localhost:8000';
-        entryObj.user.avatar = `${baseUrl}${entryObj.user.avatar.startsWith('/') ? '' : '/'}${entryObj.user.avatar}`;
-      }
-      
-      // Process entry images
-      if (entryObj.images && entryObj.images.length > 0) {
-        entryObj.images = entryObj.images.map(img => {
-          if (img && !img.startsWith('http')) {
-            const baseUrl = process.env.BACKEND_URL || 'http://localhost:8000';
-            return `${baseUrl}${img.startsWith('/') ? '' : '/'}${img}`;
-          }
+   // Update the image processing logic:
+const processedEntries = contestEntries.map(entry => {
+  const entryObj = entry.toObject();
+  
+  // Process user avatar
+  if (entryObj.user?.avatar) {
+    if (entryObj.user.avatar.startsWith('http')) {
+      // Already full URL
+      entryObj.user.avatar = entryObj.user.avatar;
+    } else {
+      const baseUrl = process.env.BACKEND_URL || 'http://localhost:8000';
+      entryObj.user.avatar = `${baseUrl}${entryObj.user.avatar.startsWith('/') ? '' : '/'}${entryObj.user.avatar}`;
+    }
+  }
+  
+  // Process entry images
+  if (entryObj.images && entryObj.images.length > 0) {
+    entryObj.images = entryObj.images.map(img => {
+      if (img) {
+        if (img.startsWith('http')) {
           return img;
-        });
+        } else {
+          const baseUrl = process.env.BACKEND_URL || 'http://localhost:8000';
+          return `${baseUrl}${img.startsWith('/') ? '' : '/'}${img}`;
+        }
       }
-      
-      return entryObj;
+      return img;
     });
+  }
+  
+  return entryObj;
+});
     
     const total = await ContestEntry.countDocuments(query);
     

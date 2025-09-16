@@ -11,15 +11,24 @@ const getWasteSubmissions = async (req, res) => {
       .sort({ createdAt: -1 })
       .populate('user', 'name email');
     
-    // Process images to ensure proper URLs
-    const processedWastes = wastes.map(waste => {
-      const wasteObj = waste.toObject();
-      if (wasteObj.image && !wasteObj.image.startsWith('http')) {
-        const baseUrl = process.env.BACKEND_URL || 'http://localhost:8000';
-        wasteObj.image = `${baseUrl}${wasteObj.image.startsWith('/') ? '' : '/'}${wasteObj.image}`;
-      }
-      return wasteObj;
-    });
+  // Replace the image URL processing logic with:
+const processedWastes = wastes.map(waste => {
+  const wasteObj = waste.toObject();
+  
+  // Process image URL for both development and production
+  if (wasteObj.image) {
+    if (wasteObj.image.startsWith('http')) {
+      // Already a full URL (Cloudinary or external)
+      wasteObj.image = wasteObj.image;
+    } else {
+      // Local file - construct full URL
+      const baseUrl = process.env.BACKEND_URL || 'http://localhost:8000';
+      wasteObj.image = `${baseUrl}${wasteObj.image.startsWith('/') ? '' : '/'}${wasteObj.image}`;
+    }
+  }
+  
+  return wasteObj;
+});
     
     res.json(processedWastes);
   } catch (error) {

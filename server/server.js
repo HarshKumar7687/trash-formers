@@ -84,6 +84,11 @@ app.use('/uploads', express.static(uploadsDir, {
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    // Cache control for production
+    if (process.env.NODE_ENV === 'production') {
+      res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year cache
+    }
   }
 }));
 

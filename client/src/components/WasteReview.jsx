@@ -90,31 +90,34 @@ const WasteReview = () => {
     setCurrentPage(1);
     fetchSubmissions();
   };
-
-  // Function to get the correct image URL
+// Example in ProductCard.jsx
 const getImageUrl = (imagePath) => {
-  // If it's already a full URL (from Cloudinary), return as is
-  if (imagePath && imagePath.startsWith("http")) {
+  if (!imagePath) return 'https://via.placeholder.com/200x160?text=No+Image';
+  
+  if (imagePath.startsWith('http') || imagePath.startsWith('blob:') || imagePath.startsWith('data:')) {
     return imagePath;
   }
-
-  // If it's a local path, construct the full URL
-  if (imagePath) {
-    const baseUrl = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:8000";
-    
-    // Handle both formats: /uploads/filename and uploads/filename
-    if (imagePath.startsWith("/uploads/")) {
-      return `${baseUrl}${imagePath}`;
-    } else if (imagePath.startsWith("uploads/")) {
-      return `${baseUrl}/${imagePath}`;
-    } else {
-      return `${baseUrl}/uploads/${imagePath}`;
-    }
+  
+  const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+  
+  if (imagePath.startsWith('/uploads/')) {
+    return `${baseUrl}${imagePath}`;
+  } else if (imagePath.startsWith('uploads/')) {
+    return `${baseUrl}/${imagePath}`;
+  } else {
+    return `${baseUrl}/uploads/${imagePath}`;
   }
-
-  return "https://via.placeholder.com/200x160?text=No+Image";
 };
 
+// Usage
+<img
+  src={getImageUrl(product.images[0])}
+  alt={product.name}
+  className="w-full h-48 object-cover rounded-lg"
+  onError={(e) => {
+    e.target.src = 'https://via.placeholder.com/200x160?text=Image+Not+Found';
+  }}
+/>
   return (
     <div className="min-h-screen w-screen bg-gray-900 text-gray-200 p-6">
       <div className="max-w-7xl mx-auto">

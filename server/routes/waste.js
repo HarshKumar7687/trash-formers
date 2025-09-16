@@ -14,19 +14,24 @@ router.get('/', protect, async (req, res) => {
   try {
     const wastes = await Waste.find({ user: req.user._id }).sort({ createdAt: -1 });
     
-    // Process images to include full URLs for frontend
-    const processedWastes = wastes.map(waste => {
-      const wasteObj = waste.toObject();
-      
-      // Convert relative path to absolute URL for frontend
-      if (wasteObj.image && !wasteObj.image.startsWith('http')) {
-        const baseUrl = process.env.BACKEND_URL || 'http://localhost:8000';
-        wasteObj.image = `${baseUrl}${wasteObj.image.startsWith('/') ? '' : '/'}${wasteObj.image}`;
-      }
-      
-      return wasteObj;
-    });
-    
+    // Replace the image URL processing logic with:
+const processedWastes = wastes.map(waste => {
+  const wasteObj = waste.toObject();
+  
+  // Process image URL for both development and production
+  if (wasteObj.image) {
+    if (wasteObj.image.startsWith('http')) {
+      // Already a full URL (Cloudinary or external)
+      wasteObj.image = wasteObj.image;
+    } else {
+      // Local file - construct full URL
+      const baseUrl = process.env.BACKEND_URL || 'http://localhost:8000';
+      wasteObj.image = `${baseUrl}${wasteObj.image.startsWith('/') ? '' : '/'}${wasteObj.image}`;
+    }
+  }
+  
+  return wasteObj;
+});
     res.json(processedWastes);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
