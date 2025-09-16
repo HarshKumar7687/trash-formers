@@ -4,7 +4,8 @@ import { User, Trophy, Upload, Coins, TrendingUp, Award, Calendar, Target, Loade
 import Navbar from '../components/Navbar';
 import { userAPI, adminAPI } from '../services/api';
 
-// Safe Image Component for Dashboard
+
+// Safe Image Component for Dashboard - Updated for production
 const SafeImage = ({ src, alt, className, ...props }) => {
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -12,32 +13,32 @@ const SafeImage = ({ src, alt, className, ...props }) => {
   const getProcessedUrl = () => {
     if (!src) return null;
     
-    // If it's already a full URL, return it
+    // If it's already a full URL (Cloudinary or external), return it
     if (src.startsWith('http') || src.startsWith('blob:') || src.startsWith('data:')) {
       return src;
     }
     
-    // If it's a relative path from server, construct proper URL
-    const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8000';
+    // For production - use the backend URL from environment
+    const baseUrl = import.meta.env.VITE_BACKEND_URL || 'https://waste-management-backend-vjgn.onrender.com';
+    
+    // Handle different path formats
+    let imagePath = src;
     
     // Remove any leading slash to avoid double slashes
-    const cleanSrc = src.startsWith('/') ? src.substring(1) : src;
+    if (imagePath.startsWith('/')) {
+      imagePath = imagePath.substring(1);
+    }
     
     // Handle avatar paths
-    if (cleanSrc.includes('avatar')) {
-      return `${baseUrl}/uploads/avatars/${cleanSrc}`;
+    if (imagePath.includes('avatar')) {
+      return `${baseUrl}/uploads/${imagePath}`;
     }
     
     // Handle other upload paths
-    return `${baseUrl}/uploads/${cleanSrc}`;
+    return `${baseUrl}/${imagePath}`;
   };
 
   const processedUrl = getProcessedUrl();
-
-  // Add debug logging to see what URLs are being generated
-  useEffect(() => {
-    console.log('Image debug:', { original: src, processed: processedUrl });
-  }, [src, processedUrl]);
 
   const handleError = () => {
     console.error('Image failed to load:', processedUrl);
@@ -82,6 +83,7 @@ const SafeImage = ({ src, alt, className, ...props }) => {
     </div>
   );
 };
+
 const Dashboard = () => {
   const [user, setUser] = useState({
     name: '',

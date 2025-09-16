@@ -10,8 +10,10 @@ const getWasteSubmissions = async (req, res) => {
     const wastes = await Waste.find({ user: req.user._id })
       .sort({ createdAt: -1 })
       .populate('user', 'name email');
-    
-  // Replace the image URL processing logic with:
+
+      // In your wasteController.js, update the image URL processing
+
+// Process image URLs for both development and production
 const processedWastes = wastes.map(waste => {
   const wasteObj = waste.toObject();
   
@@ -23,13 +25,19 @@ const processedWastes = wastes.map(waste => {
     } else {
       // Local file - construct full URL
       const baseUrl = process.env.BACKEND_URL || 'http://localhost:8000';
-      wasteObj.image = `${baseUrl}${wasteObj.image.startsWith('/') ? '' : '/'}${wasteObj.image}`;
+      
+      // Ensure proper URL formatting
+      let imagePath = wasteObj.image;
+      if (imagePath.startsWith('/')) {
+        imagePath = imagePath.substring(1);
+      }
+      
+      wasteObj.image = `${baseUrl}/${imagePath}`;
     }
   }
   
   return wasteObj;
 });
-    
     res.json(processedWastes);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

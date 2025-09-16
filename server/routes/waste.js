@@ -14,7 +14,9 @@ router.get('/', protect, async (req, res) => {
   try {
     const wastes = await Waste.find({ user: req.user._id }).sort({ createdAt: -1 });
     
-    // Replace the image URL processing logic with:
+// In your wasteController.js, update the image URL processing
+
+// Process image URLs for both development and production
 const processedWastes = wastes.map(waste => {
   const wasteObj = waste.toObject();
   
@@ -26,7 +28,14 @@ const processedWastes = wastes.map(waste => {
     } else {
       // Local file - construct full URL
       const baseUrl = process.env.BACKEND_URL || 'http://localhost:8000';
-      wasteObj.image = `${baseUrl}${wasteObj.image.startsWith('/') ? '' : '/'}${wasteObj.image}`;
+      
+      // Ensure proper URL formatting
+      let imagePath = wasteObj.image;
+      if (imagePath.startsWith('/')) {
+        imagePath = imagePath.substring(1);
+      }
+      
+      wasteObj.image = `${baseUrl}/${imagePath}`;
     }
   }
   

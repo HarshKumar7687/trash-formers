@@ -7,6 +7,7 @@ const FormData = require('form-data');
 const fs = require('fs');
 const multer = require('multer');
 const path = require('path');
+const staticFileMiddleware = require('./middleware/staticFiles');
 
 // Load environment variables
 dotenv.config();
@@ -77,13 +78,16 @@ if (!fs.existsSync(uploadsDir)) {
   console.log('Created uploads directory:', uploadsDir);
 }
 
-// Serve static files with proper CORS headers
-app.use('/uploads', express.static(uploadsDir, {
+// Serve static files with proper CORS headers for production
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
   setHeaders: (res, path) => {
-    res.setHeader('Access-Control-Allow-Origin', process.env.CLIENT_URL || 'http://localhost:5173');
+    // Allow all origins in production or specific ones
+    const allowedOrigin = process.env.NODE_ENV === 'production' 
+      ? 'https://trash-former.netlify.app' 
+      : 'http://localhost:5173';
+    
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
     res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     
     // Cache control for production
     if (process.env.NODE_ENV === 'production') {
@@ -91,6 +95,19 @@ app.use('/uploads', express.static(uploadsDir, {
     }
   }
 }));
+
+app.get('/uploads/:filename', (req, res) => {
+  const filename = req.params.filename;
+  const filePath = path.join(__dirname, 'uploads', filename);
+  
+  // Check if file exists
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    res.status(404).json({ error: 'Image not found' });
+  }
+});
+
 
 // Error handling middleware
 app.use((error, req, res, next) => {
@@ -227,6 +244,8 @@ app.get('/api/debug/uploads', (req, res) => {
     });
   });
 });
+
+app.use(staticFileMiddleware);
 
 // Routes
 app.use('/api/shop', require('./routes/shop'));
