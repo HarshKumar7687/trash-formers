@@ -27,7 +27,7 @@ const Learning = () => {
     rendererRef.current = renderer;
     
     // Set renderer size to perfectly match the container
-    const globeSize = 144; // Match the actual size of the container (w-36 h-36 = 144px)
+    const globeSize = 650; // Match the actual size of the container (w-36 h-36 = 144px)
     renderer.setSize(globeSize, globeSize);
     renderer.setClearColor(0x000000, 0);
     
