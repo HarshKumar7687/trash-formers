@@ -184,18 +184,6 @@ python app.py
 
 ---
 
-## 📸 Screenshots
-
-Include screenshots of:
-
-- Home Page
-- Login Page
-- Register Page
-- User Dashboard
-- Waste Report Form
-- Admin Dashboard
-- Eco Coin Dashboard
-
 Example:
 
 ```
