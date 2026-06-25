@@ -6,7 +6,6 @@
 ![React](https://img.shields.io/badge/React-Frontend-61DAFB)
 ![Node.js](https://img.shields.io/badge/Node.js-Backend-339933)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248)
-![License](https://img.shields.io/badge/License-MIT-blue)
 
 ---
 
@@ -64,33 +63,48 @@ TrashFormers is a modern waste management platform that allows users to report w
 
 ---
 
-## 📂 Folder Structure
+## 📂 Project Structure
 
-```
-TrashFormers
+```text
+TrashFormers/
 │
-├── client/
-│   ├── public/
+├── client/                        # React Frontend
 │   ├── src/
+│   │   ├── assets/
 │   │   ├── components/
 │   │   ├── pages/
-│   │   ├── context/
-│   │   ├── hooks/
-│   │   ├── assets/
 │   │   ├── services/
-│   │   └── App.jsx
+│   │   ├── store/
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── tailwind.config.js
+│   └── netlify.toml
 │
-├── server/
+├── server/                        # Express Backend
 │   ├── config/
 │   ├── controllers/
 │   ├── middleware/
 │   ├── models/
 │   ├── routes/
-│   ├── uploads/
-│   └── server.js
+│   ├── package.json
+│   └── render.yaml
+│
+├── ml/                            # AI Waste Classification Service
+│   ├── app.py
+│   ├── requirements.txt
+│   ├── garbage_classification_cnn.h5
+│   ├── waste_model.h5
+│   ├── class_mapping.json
+│   ├── class_names.pkl
+│   ├── label_encoder.pkl
+│   ├── model_config.pkl
+│   └── biological18.jpg
 │
 ├── README.md
-└── package.json
+└── .gitignore
 ```
 
 ---
